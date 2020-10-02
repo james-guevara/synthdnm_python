@@ -9,7 +9,7 @@ usage:
  _____| |  |   |  | | |   |  |   |  |   _   ||       || | |   || ||_|| |
 |_______|  |___|  |_|  |__|  |___|  |__| |__||______| |_|  |__||_|   |_|
 
-Version 0.1.0.0    Authors: Danny Antaki, Aojie Lian, James Guevara    
+Version 0.1.0.1    Authors: Danny Antaki, Aojie Lian, James Guevara    
                    Contact: j3guevar@ucsd.health.edu
 ---------------------------------------------------------------------------------
     synthdnm  -f <in.fam>  -v  <in.vcf.gz>  [-oLgkVh]
