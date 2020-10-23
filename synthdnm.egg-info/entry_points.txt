@@ -1,0 +1,3 @@
+[console_scripts]
+synthdnm = synthdnm.run:run_synthdnm
+
