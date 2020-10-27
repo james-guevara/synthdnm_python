@@ -52,7 +52,7 @@ vcf_parent_stem = vcf_parent + vcf_stem
 annotated_vcf_filename = "{}.{}".format(vcf_parent + vcf_stem, "annotated.vcf.gz")
 
 import subprocess
-'''
+
 annotate = subprocess.Popen(["bcftools", "annotate", "-I", "%CHROM:%POS0:%END:%REF:%ALT", vcf_filepath], stdout=subprocess.PIPE)
 view = subprocess.check_call(["bcftools", "view", "-e", "N_ALT>1", "-Oz", "-o", annotated_vcf_filename], stdin=annotate.stdout)
 # annotate.stdout.close()
@@ -71,7 +71,6 @@ priv_inh_vcf_filename = make_private_vcf(annotated_vcf_filename, vcf_parent_stem
 bgzip = subprocess.check_call(["bgzip", priv_inh_vcf_filename])
 tabix = subprocess.check_call(["tabix", priv_inh_vcf_filename + ".gz"])
 
-'''
 from swap import swap_ped
 swapped_ped_absolute_path = swap_ped(ped_filepath)
 
