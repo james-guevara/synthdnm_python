@@ -111,6 +111,8 @@ def get_offspring_ar(offspring_AD):
     ref_AD,alt_AD = offspring_AD.split(",")[0],offspring_AD.split(",")[1]
     if ref_AD is None or alt_AD is None: return None
     offspring_AR = float(alt_AD)/(float(ref_AD) + _buff)
+    return offspring_AR
+
 
 def get_log2_coverage_ratio(AD):
     _buff = 1

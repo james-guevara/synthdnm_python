@@ -1,3 +1,4 @@
 [console_scripts]
 synthdnm = synthdnm.run:run_synthdnm
+synthdnm-build = synthdnm.create_synthetic_dnms:build_synthdnm
 

@@ -34,7 +34,7 @@ def get_info_features(info_keys, info_column):
         else: info_features[key] = val
     return info_features
 
-def parse_variant(line,ped_dict,iid_indices,info_keys):
+def parse_variant(line,ped_dict,iid_indices,info_keys, fout=None, training_examples = None):
     """Parse line for variant"""
     linesplit = tokenize(line)
     variant = tuple(map(str,linesplit[0:5]))
@@ -99,7 +99,10 @@ def parse_variant(line,ped_dict,iid_indices,info_keys):
                  parent_max_GQ, parent_min_GQ, offspring_GQ] + list(info_features.values())
 
         out = "{}\t{}\t{}\t{}\t{}\t{}".format(chrom,pos,ID,ref,alt,offspring_iid) + "\t" + "\t".join([str(elem) for elem in feats])
-        print(out)
+        if training_examples: out = out + "\t" + training_examples
+        if fout:
+            print(out, file=fout)
+        else: print(out)
 
        
 def get_offspring_ar(offspring_AD):
@@ -117,7 +120,7 @@ def get_log2_coverage_ratio(AD):
     return coverage_ratio
 
 
-def parse(vcf_filepath, ped_filepath, info_keys, variants_to_keep = None):
+def parse(vcf_filepath, ped_filepath, info_keys, variants_to_keep = None, fout = None, training_examples = None):
     from backend import process_ped
     ped_dict = process_ped(ped_filepath)
 
@@ -125,8 +128,10 @@ def parse(vcf_filepath, ped_filepath, info_keys, variants_to_keep = None):
     header = "\t".join(["chrom","pos","ID","ref","alt","iid"] +\
                        ["offspring_gt", "father_gt", "mother_gt", "nalt", "filter", "qual", "parent_ar_max", "parent_ar_min", "offspring_ar", "parent_dp_max", "parent_dp_min", "offspring_dp", "parent_dnm_pl_max", "parent_dnm_pl_min", "parent_inh_pl_max", "parent_inh_pl_min", "offspring_dnm_pl", "offspring_inh_pl", "parent_gq_max", "parent_gq_min", "offspring_gq"] +\
                        info_keys)
-
-    print(header)
+    if training_examples: header = header + "\t" + "TRUTH"
+    if fout: 
+        if fout.tell() == 0: print(header,file=fout)
+    else: print(header)
 
     if vcf_filepath.endswith(".gz"):
         import gzip
@@ -136,7 +141,7 @@ def parse(vcf_filepath, ped_filepath, info_keys, variants_to_keep = None):
     for line in f:
         if line.startswith("#CHROM"): iid_indices = index_samples(line, ped_dict) # Use the CHROM header line to index the samples
         if line.startswith("#"): continue
-        parse_variant(line, ped_dict, iid_indices, info_keys)
+        parse_variant(line, ped_dict, iid_indices, info_keys, fout=fout, training_examples=training_examples)
 
 
 

@@ -50,11 +50,20 @@ def run_synthdnm():
         for line in f:
            info_keys.append(line.rstrip()) 
     else: info_keys = ["VQSLOD","ClippingRankSum","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
-    
+
+    import sys
+    from pathlib import Path
+    # Gets the stem of the filename (removes .vcf.gz or .vcf extension)
+    vcf_stem = Path(vcf_filepath).stem
+    if vcf_stem.endswith(".vcf"):
+        vcf_stem = Path(vcf_stem).stem
+    vcf_parent = str(Path(vcf_filepath).parent) + "/"
+    vcf_parent_stem = vcf_parent + vcf_stem
+    fout = open(vcf_parent_stem + ".synthdnm.features.txt","w")
+
     from vcf import parse
-    parse(vcf_filepath, fam_filepath, info_keys=info_keys)
+    parse(vcf_filepath, fam_filepath, info_keys=info_keys, fout=fout)
+    
 
 if __name__=="__main__":
     run_synthdnm()
-
-

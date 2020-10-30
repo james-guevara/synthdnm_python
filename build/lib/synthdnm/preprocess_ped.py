@@ -1,4 +1,5 @@
 import sys
+
 # Uses the pedigree (.ped) file to create files that will be used by PLINK. 
 ped_filepath = sys.argv[1]
 # Gets the stem of the pedigree file (retaining only the base filename and removing the file extension.

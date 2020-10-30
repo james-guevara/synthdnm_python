@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="synthdnm",
-    version="0.0.9",
+    version="0.1.0",
     author="James Guevara",
     author_email="guevara.james@gmail.com",
     description="De novo caller and training pipeline",
@@ -18,10 +18,11 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.6',
     entry_points={
         'console_scripts': [
             'synthdnm = synthdnm.run:run_synthdnm',
+            'synthdnm-build = synthdnm.create_synthetic_dnms:build_synthdnm',
         ],
     },
 )

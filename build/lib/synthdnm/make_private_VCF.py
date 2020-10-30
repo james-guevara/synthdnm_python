@@ -25,9 +25,9 @@ def get_transmitted_variants(tdt_poo_fh):
         if T == 1: trans_IDs.add(ID)
     return trans_IDs
 
-def make_private_vcf(annotated_vcf_fh, vcf_stem):
-    private_IDs = get_private_IDs(vcf_stem + ".frq.counts")
-    trans_IDs = get_transmitted_variants(vcf_stem + ".tdt.poo")
+def make_private_vcf(annotated_vcf_fh, vcf_prev_stem):
+    private_IDs = get_private_IDs(vcf_prev_stem + ".frq.counts")
+    trans_IDs = get_transmitted_variants(vcf_prev_stem + ".tdt.poo")
     # Intersect to get private, transmitted variants?
     private_trans_IDs = private_IDs.intersection(trans_IDs)
 
@@ -36,8 +36,13 @@ def make_private_vcf(annotated_vcf_fh, vcf_stem):
     if vcf_stem.endswith(".vcf"):
         vcf_stem = Path(vcf_stem).stem
 
+    vcf_parent = str(Path(annotated_vcf_fh).parent) + "/"
+    vcf_parent_stem = vcf_parent + vcf_stem
+
+    priv_inh_vcf_filename = vcf_parent + vcf_stem + ".private.inherited.vcf"
+
     # fout = open(vcf_stem + ".private.vcf", "w")
-    fout = open(vcf_stem + ".private.inherited.vcf", "w")
+    fout = open(priv_inh_vcf_filename, "w")
     if annotated_vcf_fh.endswith(".gz"):
         import gzip
         annotated_vcf_fh = gzip.open(annotated_vcf_fh,"rt",9)
@@ -48,3 +53,4 @@ def make_private_vcf(annotated_vcf_fh, vcf_stem):
         else:
             ID = line.rstrip().split("\t")[2]
             if ID in private_trans_IDs: fout.write(line) # Private variants
+    return priv_inh_vcf_filename
