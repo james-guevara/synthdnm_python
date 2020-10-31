@@ -120,20 +120,20 @@ def build_synthdnm():
     freq = subprocess.check_call(["plink", "--bfile", vcf_parent_stem + ".fin", "--allow-extra-chr", "--freq", "counts", "--out", vcf_parent_stem])
     tdt = subprocess.check_call(["plink", "--bfile", vcf_parent_stem + ".fin", "--allow-extra-chr", "--tdt", "poo", "--pheno", phen, "--out", vcf_parent_stem])
     
-    from make_private_VCF import make_private_vcf
+    from .make_private_VCF import make_private_vcf
     priv_inh_vcf_filename = make_private_vcf(annotated_vcf_filename, vcf_parent_stem)
     
     bgzip = subprocess.check_call(["bgzip", priv_inh_vcf_filename])
     tabix = subprocess.check_call(["tabix", priv_inh_vcf_filename + ".gz"])
     
-    from swap import swap_ped
+    from .swap import swap_ped
     swapped_ped_absolute_path = swap_ped(ped_filepath)
     
     # Make output file for training set
     private_inherited_vcf_absolute_path = vcf_parent_stem + ".annotated.private.inherited.vcf.gz"
     
     fout = open(vcf_parent_stem + ".training_set.txt", "w")
-    from vcf import parse
+    from .vcf import parse
     # info_keys = ["VQSLOD","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
     # Get positive training examples
     parse(private_inherited_vcf_absolute_path, swapped_ped_absolute_path, info_keys,fout=fout,training_examples="1")

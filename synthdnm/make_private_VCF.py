@@ -1,5 +1,5 @@
 import sys
-from backend import tabbit
+from .backend import tabbit
 
 def get_private_IDs(frq_counts_fh):
     private_IDs = set()

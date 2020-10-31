@@ -1,8 +1,61 @@
+__version__="0.1.0.1"
+__usage__="""
+ _______  __   __  __    _  _______  __   __  ______   __    _  __   __ 
+|       ||  | |  ||  |  | ||       ||  | |  ||      | |  |  | ||  |_|  |
+|  _____||  |_|  ||   |_| ||_     _||  |_|  ||  _    ||   |_| ||       |
+| |_____ |       ||       |  |   |  |       || | |   ||       ||       |
+|_____  ||_     _||  _    |  |   |  |       || |_|   ||  _    ||       |
+ _____| |  |   |  | | |   |  |   |  |   _   ||       || | |   || ||_|| |
+|_______|  |___|  |_|  |__|  |___|  |__| |__||______| |_|  |__||_|   |_|
+
+
+Version {}    Authors: Danny Antaki, Aojie Lian, James Guevara    
+                   Contact: j3guevar@ucsd.health.edu
+---------------------------------------------------------------------------------
+    synthdnm-build  -f <in.fam>  -v  <in.vcf.gz>
+    
+necessary arguments:
+  
+  -v, --vcf    PATH    VCF file
+  -f, --fam    PATH    PLINK pedigree (.fam/.ped) file
+  
+optional arguments:
+
+  -i, --info    PATH    path to file containing list of info features to use (separated by line) [default is GATK list]
+  -h, --help            show this message and exit
+     
+""".format(__version__)
+
+
 def build_synthdnm():
+    import argparse
+    
+    parser = argparse.ArgumentParser(usage=__usage__)
+    
+    # Necessary arguments
+    parser.add_argument("-v","--vcf",required=True)
+    parser.add_argument("-f","--fam",required=True)
+    # Optional arguments
+    parser.add_argument("-i","--info",required=False)
+
+    args  = parser.parse_args()
+    
+
+    vcf_filepath = args.vcf
+    ped_filepath = args.fam
+    
+    info_keys = []
+    if args.info: 
+        f = open(args.info,"r")
+        for line in f:
+           info_keys.append(line.rstrip()) 
+    else: info_keys = ["VQSLOD","ClippingRankSum","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
+
+
     import sys
     # Pipeline to create synthetic de novo variants from private, inherited variants.
     # python create_synthetic_dnms.py <in.vcf.gz> <in.ped>
-    vcf_filepath = sys.argv[1]
+    # vcf_filepath = sys.argv[1]
     
     from pathlib import Path
     # Gets the stem of the filename (removes .vcf.gz or .vcf extension)
@@ -11,7 +64,7 @@ def build_synthdnm():
         vcf_stem = Path(vcf_stem).stem
     
     
-    ped_filepath = sys.argv[2]
+    # ped_filepath = sys.argv[2]
     
     # Create plink files (using ped_stem)
     ped_stem = Path(ped_filepath).stem
@@ -21,7 +74,8 @@ def build_synthdnm():
     uppa = "{}.{}".format(ped_parent + ped_stem,"update.parents")
     upsx = "{}.{}".format(ped_parent + ped_stem,"update.sex")
     phen = "{}.{}".format(ped_parent + ped_stem,"update.tdt_all_case")
-    
+
+
     def preprocess_ped(ped_filepath,upid,uppa,upsx,phen):
     
         fout_upid = open(upid,"w")
@@ -66,24 +120,23 @@ def build_synthdnm():
     freq = subprocess.check_call(["plink", "--bfile", vcf_parent_stem + ".fin", "--allow-extra-chr", "--freq", "counts", "--out", vcf_parent_stem])
     tdt = subprocess.check_call(["plink", "--bfile", vcf_parent_stem + ".fin", "--allow-extra-chr", "--tdt", "poo", "--pheno", phen, "--out", vcf_parent_stem])
     
-    from make_private_VCF import make_private_vcf
+    from .make_private_VCF import make_private_vcf
     priv_inh_vcf_filename = make_private_vcf(annotated_vcf_filename, vcf_parent_stem)
     
     bgzip = subprocess.check_call(["bgzip", priv_inh_vcf_filename])
     tabix = subprocess.check_call(["tabix", priv_inh_vcf_filename + ".gz"])
     
-    from swap import swap_ped
+    from .swap import swap_ped
     swapped_ped_absolute_path = swap_ped(ped_filepath)
     
     # Make output file for training set
     private_inherited_vcf_absolute_path = vcf_parent_stem + ".annotated.private.inherited.vcf.gz"
     
     fout = open(vcf_parent_stem + ".training_set.txt", "w")
-    from vcf import parse
-    info_keys = ["VQSLOD","ClippingRankSum","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
+    from .vcf import parse
+    # info_keys = ["VQSLOD","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
     # Get positive training examples
     parse(private_inherited_vcf_absolute_path, swapped_ped_absolute_path, info_keys,fout=fout,training_examples="1")
-    # parse(private_inherited_vcf_absolute_path, swapped_ped_absolute_path, info_keys)
     # Get negative training examples
     parse(vcf_filepath, ped_filepath, info_keys, fout=fout, training_examples="0")
 

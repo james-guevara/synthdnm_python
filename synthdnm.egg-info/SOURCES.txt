@@ -1,8 +1,8 @@
 README.md
 setup.py
-synthdnm/Clf.py
 synthdnm/__init__.py
 synthdnm/backend.py
+synthdnm/clf.py
 synthdnm/create_synthetic_dnms.py
 synthdnm/make_private_VCF.py
 synthdnm/preprocess_ped.py

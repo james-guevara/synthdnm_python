@@ -1,4 +1,4 @@
-from backend import tokenize
+from .backend import tokenize
 import numpy as np
 
 def index_samples(CHROM_header_line, ped_dictionary):
@@ -111,6 +111,8 @@ def get_offspring_ar(offspring_AD):
     ref_AD,alt_AD = offspring_AD.split(",")[0],offspring_AD.split(",")[1]
     if ref_AD is None or alt_AD is None: return None
     offspring_AR = float(alt_AD)/(float(ref_AD) + _buff)
+    return offspring_AR
+
 
 def get_log2_coverage_ratio(AD):
     _buff = 1
@@ -121,7 +123,7 @@ def get_log2_coverage_ratio(AD):
 
 
 def parse(vcf_filepath, ped_filepath, info_keys, variants_to_keep = None, fout = None, training_examples = None):
-    from backend import process_ped
+    from .backend import process_ped
     ped_dict = process_ped(ped_filepath)
 
     # The INFO column depends on the VCF type
@@ -166,7 +168,7 @@ def parse_private_inherited_variant(line,ped_dict,iid_indices,fout):
 
 
 def parse_private_inherited(vcf_filepath, ped_filepath):
-    from backend import process_ped
+    from .backend import process_ped
     ped_dict = process_ped(ped_filepath)
     if vcf_filepath.endswith(".gz"):
         import gzip

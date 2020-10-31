@@ -68,7 +68,7 @@ def run_synthdnm():
     feature_filename = vcf_parent_stem + ".synthdnm.features.txt"
     fout = open(feature_filename,"w")
 
-    from vcf import parse
+    from .vcf import parse
     parse(vcf_filepath, fam_filepath, info_keys=info_keys, fout=fout)
     fout.close()
 
@@ -81,7 +81,7 @@ def run_synthdnm():
         indel_clf_filename = args.l
     else: indel_clf_filename = "indel_1000-12-25-2-1-0.0-100.joblib"
 
-    from clf import classify 
+    from .clf import classify 
     classify(feature_table = feature_filename, fam_fh = fam_filepath, clf_snv = snv_clf_filename, clf_indel = indel_clf_filename)
 
 if __name__=="__main__":
