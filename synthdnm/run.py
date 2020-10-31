@@ -75,10 +75,10 @@ def run_synthdnm():
     if args.extract_features: return
 
     if args.snp_classifier:
-        snv_clf_filename = args.s
+        snv_clf_filename = args.snp_classifier
     else: snv_clf_filename = "snp_100-12-10-2-1-0.0-100.joblib"
     if args.indel_classifier:
-        indel_clf_filename = args.l
+        indel_clf_filename = args.indel_classifier
     else: indel_clf_filename = "indel_1000-12-25-2-1-0.0-100.joblib"
 
     from .clf import classify 
