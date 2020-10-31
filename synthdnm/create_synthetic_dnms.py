@@ -1,8 +1,61 @@
+__version__="0.1.0.1"
+__usage__="""
+ _______  __   __  __    _  _______  __   __  ______   __    _  __   __ 
+|       ||  | |  ||  |  | ||       ||  | |  ||      | |  |  | ||  |_|  |
+|  _____||  |_|  ||   |_| ||_     _||  |_|  ||  _    ||   |_| ||       |
+| |_____ |       ||       |  |   |  |       || | |   ||       ||       |
+|_____  ||_     _||  _    |  |   |  |       || |_|   ||  _    ||       |
+ _____| |  |   |  | | |   |  |   |  |   _   ||       || | |   || ||_|| |
+|_______|  |___|  |_|  |__|  |___|  |__| |__||______| |_|  |__||_|   |_|
+
+
+Version {}    Authors: Danny Antaki, Aojie Lian, James Guevara    
+                   Contact: j3guevar@ucsd.health.edu
+---------------------------------------------------------------------------------
+    synthdnm-build  -f <in.fam>  -v  <in.vcf.gz>
+    
+necessary arguments:
+  
+  -v, --vcf    PATH    VCF file
+  -f, --fam    PATH    PLINK pedigree (.fam/.ped) file
+  
+optional arguments:
+
+  -i, --info    PATH    path to file containing list of info features to use (separated by line) [default is GATK list]
+  -h, --help            show this message and exit
+     
+""".format(__version__)
+
+
 def build_synthdnm():
+    import argparse
+    
+    parser = argparse.ArgumentParser(usage=__usage__)
+    
+    # Necessary arguments
+    parser.add_argument("-v","--vcf",required=True)
+    parser.add_argument("-f","--fam",required=True)
+    # Optional arguments
+    parser.add_argument("-i","--info",required=False)
+
+    args  = parser.parse_args()
+    
+
+    vcf_filepath = args.vcf
+    ped_filepath = args.fam
+    
+    info_keys = []
+    if args.info: 
+        f = open(args.info,"r")
+        for line in f:
+           info_keys.append(line.rstrip()) 
+    else: info_keys = ["VQSLOD","ClippingRankSum","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
+
+
     import sys
     # Pipeline to create synthetic de novo variants from private, inherited variants.
     # python create_synthetic_dnms.py <in.vcf.gz> <in.ped>
-    vcf_filepath = sys.argv[1]
+    # vcf_filepath = sys.argv[1]
     
     from pathlib import Path
     # Gets the stem of the filename (removes .vcf.gz or .vcf extension)
@@ -11,8 +64,7 @@ def build_synthdnm():
         vcf_stem = Path(vcf_stem).stem
     
     
-    ped_filepath = sys.argv[2]
-    print(ped_filepath)
+    # ped_filepath = sys.argv[2]
     
     # Create plink files (using ped_stem)
     ped_stem = Path(ped_filepath).stem
@@ -82,10 +134,9 @@ def build_synthdnm():
     
     fout = open(vcf_parent_stem + ".training_set.txt", "w")
     from vcf import parse
-    info_keys = ["VQSLOD","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
+    # info_keys = ["VQSLOD","BaseQRankSum","FS","SOR","MQ","MQRankSum","QD","ReadPosRankSum"]
     # Get positive training examples
     parse(private_inherited_vcf_absolute_path, swapped_ped_absolute_path, info_keys,fout=fout,training_examples="1")
-    # parse(private_inherited_vcf_absolute_path, swapped_ped_absolute_path, info_keys)
     # Get negative training examples
     parse(vcf_filepath, ped_filepath, info_keys, fout=fout, training_examples="0")
 

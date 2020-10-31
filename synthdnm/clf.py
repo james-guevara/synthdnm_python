@@ -1,10 +1,44 @@
+__version__="0.1.0.1"
+__usage__="""
+ _______  __   __  __    _  _______  __   __  ______   __    _  __   __ 
+|       ||  | |  ||  |  | ||       ||  | |  ||      | |  |  | ||  |_|  |
+|  _____||  |_|  ||   |_| ||_     _||  |_|  ||  _    ||   |_| ||       |
+| |_____ |       ||       |  |   |  |       || | |   ||       ||       |
+|_____  ||_     _||  _    |  |   |  |       || |_|   ||  _    ||       |
+ _____| |  |   |  | | |   |  |   |  |   _   ||       || | |   || ||_|| |
+|_______|  |___|  |_|  |__|  |___|  |__| |__||______| |_|  |__||_|   |_|
+
+
+Version {}    Authors: Danny Antaki, Aojie Lian, James Guevara    
+                   Contact: j3guevar@ucsd.health.edu
+---------------------------------------------------------------------------------
+    synthdnm-classify  -f <in.fam>  -d  <in.features.txt>
+    
+necessary arguments:
+  
+  -f, --fam         PATH    PLINK pedigree (.fam/.ped) file
+  -d, --features    PATH    feature file
+  
+optional arguments:
+
+  -s, --snp_classifier                       PATH    path to snp classifier joblib file
+  -l, --indel_classifier                     PATH    path to indel classifier joblib file 
+  -p, --keep_all_putative_dnms                       flag that retains all putative dnms (and their scores) in the output files 
+
+  
+  -h, --help           show this message and exit
+     
+""".format(__version__)
+
+
+
 import pandas as pd
 # from sklearn.externals import joblib
 import joblib
 import os,sys
 import numpy as np
 
-def classify_dataframe(df = None, clf = None, ofh = None, mode = "a", keep_fp = True):
+def classify_dataframe(df = None, clf = None, ofh = None, mode = "a", keep_fp = False, features = None):
     pd.options.mode.chained_assignment = None
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna(axis=0,subset=df.columns[12:36])
@@ -15,7 +49,9 @@ def classify_dataframe(df = None, clf = None, ofh = None, mode = "a", keep_fp = 
     if df.empty: 
         # print("Empty dataframe.")
         return 0
-    X = df[df.columns[12:36]].values
+
+    X = df[features].to_numpy()
+
     df["pred"] = clf.predict(X)
     df["prob"] = clf.predict_proba(X)[:,1]
 
@@ -39,14 +75,18 @@ def get_sex(fam_fh):
     df.drop(columns=["index"],inplace=True)
     return df
 
-# def classify(ofh_tmp=None,ofh=None,keep_fp=None,pseud=None,vcf=None,make_bed=True,make_vcf=True,fam_fh=None):
-def classify(feature_table=None,keep_fp=True,pseud=None,fam_fh=None,snv_clf="snp_100-12-10-2-1-0.0-100.joblib",clf_indel="ssc-jg.half.indel_100-auto-None.joblib"):
+def classify(feature_table=None,keep_fp=False,pseud=None,fam_fh=None,clf_snv="snp_100-12-10-2-1-0.0-100.joblib",clf_indel="indel_1000-12-25-2-1-0.0-100.joblib"):
     # Get classifiers
-    clf = joblib.load(snv_clf)
+    clf = joblib.load(clf_snv)
     clf_indels = joblib.load(clf_indel)
     
     # Make dataframe from input pydnm file
     df = pd.read_csv(feature_table,sep="\t",dtype={"chrom": str})
+    # Get the list of features
+    columns = list(df.columns)
+    non_features = ['chrom', 'pos', 'ID', 'ref', 'alt', 'iid', 'offspring_gt', 'father_gt', 'mother_gt', 'nalt', 'filter', 'qual']
+    features = [elem for elem in columns if elem not in non_features]
+
     df_fam = get_sex(fam_fh)
 
     # pseud_chrX = pseud["chrX"]
@@ -57,8 +97,8 @@ def classify(feature_table=None,keep_fp=True,pseud=None,fam_fh=None,snv_clf="snp
     # pseud_chrY_interval_two = pseud_chrY[1]
 
     
-    # def classify_dataframe(df, clf, ofh,pyDNM_header=False, mode="a",keep_fp=True):
     from pathlib import Path
+    feature_filename = feature_table
     feature_file_stem = Path(feature_filename).stem
     feature_file_parent = str(Path(feature_filename).parent) + "/"
     feature_file_parent_stem = feature_file_parent + feature_file_stem 
@@ -96,8 +136,8 @@ def classify(feature_table=None,keep_fp=True,pseud=None,fam_fh=None,snv_clf="snp
 
 
 
-    classify_dataframe(df = df_autosomal_SNV, clf = clf, ofh = ofh)
-    classify_dataframe(df = df_autosomal_indel,clf = clf_indels, ofh = ofh)
+    classify_dataframe(df = df_autosomal_SNV, clf = clf, ofh = ofh, features = features, keep_fp = keep_fp)
+    classify_dataframe(df = df_autosomal_indel,clf = clf_indels, ofh = ofh, features = features, keep_fp = keep_fp)
 
 
     # classify_dataframe(df_female_X_SNV,clf,ofh_new)
@@ -130,12 +170,30 @@ def make_output_bed(f = None, fout = None):
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings("ignore")
-    feature_filename = sys.argv[1]
-    ped_filename = sys.argv[2]
+    import argparse
+    parser = argparse.ArgumentParser(usage=__usage__)
+    # Necessary arguments
+    parser.add_argument("-d","--features",required=True)
+    parser.add_argument("-f","--fam",required=True)
+    # Optional arguments
+    parser.add_argument("-s","--snp_classifier",required=False)
+    parser.add_argument("-i","--indel_classifier",required=False)
+    parser.add_argument('-p',"--keep_all_putative_dnms", action='store_true')    
+    args  = parser.parse_args()
 
-    # testing
 
-    # snv_clf_filename = sys.argv[3]
-    # indel_clf_filename = sys.argv[4]
+    # feature_filename = sys.argv[1]
+    feature_filename = args.features
+    # ped_filename = sys.argv[2]
+    ped_filename = args.fam
 
-    classify(feature_table = feature_filename, fam_fh = ped_filename)
+    if args.snp_classifier:
+        snv_clf_filename = args.s
+    else: snv_clf_filename = "snp_100-12-10-2-1-0.0-100.joblib"
+    if args.indel_classifier:
+        indel_clf_filename = args.i
+    else: indel_clf_filename = "indel_1000-12-25-2-1-0.0-100.joblib"
+
+    keep_fp = args.keep_all_putative_dnms
+
+    classify(feature_table = feature_filename, fam_fh = ped_filename, clf_snv = snv_clf_filename, clf_indel = indel_clf_filename, keep_fp = keep_fp)
