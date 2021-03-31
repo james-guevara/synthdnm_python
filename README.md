@@ -1,3 +1,11 @@
+# Pre-trained classifiers
+Pre-trained classifiers can be found here:
+https://drive.google.com/drive/folders/14llv-YqOWYKUykXUPozA0BdNXkBCxxcv?usp=sharing
+
+# Supplementary data
+Supplementary data containing DNM calls can be found here:
+https://docs.google.com/spreadsheets/d/1OSAlX-XnBzWZQrpzt_tfHd58Jhz6FqO05BBgrJUx4gI/edit?usp=sharing
+
 # Usage
 ```
 usage: 
